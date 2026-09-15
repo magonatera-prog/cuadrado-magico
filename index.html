@@ -341,17 +341,17 @@
     <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
   </header>
 
-  <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-    <div>
-      <strong>Cuenta:</strong>
-      <span id="cuentaEstado" style="color:var(--accent);">Activa</span>
-      <p class="hint" style="margin-top:4px;">Apagada = no revisa entradas ni manda a ninguna salida.</p>
-    </div>
-    <label class="switch" title="Activar/desactivar entradas y salidas">
-      <input type="checkbox" id="cuentaActivaSwitch" checked>
-      <span class="track"></span>
-    </label>
+  <div class="card" id="cuentaCard">
+    <strong>Cuenta:</strong>
+    <span id="cuentaEstado" style="color:var(--accent);">Activa</span>
+    <p class="hint" style="margin-top:4px;">La activa o desactiva el administrador.</p>
   </div>
+
+  <div id="bloqueoCuenta" class="card" style="display:none; text-align:center;">
+    <p id="bloqueoMensaje" class="hint" style="font-size:14px;"></p>
+  </div>
+
+  <div id="appPrincipal">
 
   <div class="card">
     <div class="field" style="margin-bottom:16px;">
@@ -469,6 +469,8 @@
       <div class="conex-save-row"><button class="ghost" id="btnGuardarSalidas">Guardar salidas</button></div>
     </div>
   </details>
+
+  </div>
 
   <footer>Herramienta personal · Javier Natera</footer>
 </div>
@@ -721,8 +723,10 @@ const els = {
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
   btnRefrescarInline: document.getElementById('btnRefrescarInline'),
   powerSwitch: document.getElementById('powerSwitch'),
-  cuentaActivaSwitch: document.getElementById('cuentaActivaSwitch'),
   cuentaEstado: document.getElementById('cuentaEstado'),
+  bloqueoCuenta: document.getElementById('bloqueoCuenta'),
+  bloqueoMensaje: document.getElementById('bloqueoMensaje'),
+  appPrincipal: document.getElementById('appPrincipal'),
   pollStatus: document.getElementById('pollStatus'),
   fakeOff: document.getElementById('fakeOff'),
   autoBlackToggle: document.getElementById('autoBlackToggle'),
@@ -730,6 +734,53 @@ const els = {
 };
 
 const SQUARE_SIZE = 4;
+
+/* ============================================================
+   CUENTA MULTI-USUARIO: cada comprador abre su link con ?token=...
+   La configuración (entradas/salidas/activo) vive en el backend,
+   no en localStorage — así el administrador la controla desde /admin.
+   ============================================================ */
+const CM_BACKEND = 'https://javiernatera--e9fd500ab11e11f1b77d1607ee4eb77e.web.val.run';
+
+const paramsToken = new URLSearchParams(window.location.search);
+const TOKEN = paramsToken.get('token') || localStorage.getItem('cm_token') || '';
+if (paramsToken.get('token')) localStorage.setItem('cm_token', paramsToken.get('token'));
+
+let USUARIO_CACHE = null;
+
+async function cargarUsuario(){
+  if(!TOKEN) return null;
+  try{
+    const res = await fetch(`${CM_BACKEND}/api/panel/${TOKEN}`);
+    if(!res.ok) return null;
+    USUARIO_CACHE = await res.json();
+    return USUARIO_CACHE;
+  } catch(e){ return null; }
+}
+
+async function guardarUsuario(cambios){
+  if(!TOKEN) return;
+  try{
+    const res = await fetch(`${CM_BACKEND}/api/panel/${TOKEN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cambios),
+    });
+    if(res.ok) USUARIO_CACHE = await res.json();
+  } catch(e){ /* se guarda en el próximo intento */ }
+}
+
+function cuentaActiva(){
+  return !!(USUARIO_CACHE && USUARIO_CACHE.activo);
+}
+
+function mostrarBloqueo(mensaje){
+  els.appPrincipal.style.display = 'none';
+  els.bloqueoCuenta.style.display = 'block';
+  els.bloqueoMensaje.textContent = mensaje;
+  els.cuentaEstado.textContent = 'Apagada';
+  els.cuentaEstado.style.color = 'var(--text-dim)';
+}
 let lastPayload = null;
 let isGenerating = false;
 let generationCounter = 0;
@@ -923,14 +974,12 @@ const ENTRADAS_FIJAS = ['Goo', 'Impra', 'Sekitan'];
 const SALIDAS_FIJAS = ['Impra', 'Goo', 'Glyphs', 'Motherboard', 'Omega Board'];
 
 function loadEntradas(){
-  let saved = [];
-  try{ saved = JSON.parse(localStorage.getItem('cm_entradas') || '[]'); } catch(e){}
-  return ENTRADAS_FIJAS.map(nombre => saved.find(e => e.nombre === nombre) || { nombre, url: '', activo: false });
+  if(USUARIO_CACHE && USUARIO_CACHE.entradas) return USUARIO_CACHE.entradas;
+  return ENTRADAS_FIJAS.map(nombre => ({ nombre, url: '', activo: false }));
 }
 function loadSalidas(){
-  let saved = [];
-  try{ saved = JSON.parse(localStorage.getItem('cm_salidas') || '[]'); } catch(e){}
-  return SALIDAS_FIJAS.map(nombre => saved.find(s => s.nombre === nombre) || { nombre, url: '', clave: '', activo: false });
+  if(USUARIO_CACHE && USUARIO_CACHE.salidas) return USUARIO_CACHE.salidas;
+  return SALIDAS_FIJAS.map(nombre => ({ nombre, url: '', clave: '', activo: false }));
 }
 
 function renderEntradas(){
@@ -964,24 +1013,24 @@ function renderSalidas(){
     </div>`).join('');
 }
 
-function guardarEntradas(){
+async function guardarEntradas(){
   const entradas = ENTRADAS_FIJAS.map((nombre, i) => ({
     nombre,
     url: document.getElementById('entUrl' + i).value.trim(),
     activo: document.getElementById('entActiva' + i).checked,
   }));
-  localStorage.setItem('cm_entradas', JSON.stringify(entradas));
+  await guardarUsuario({ entradas });
   els.statusLine.textContent = 'Entradas guardadas ✓';
 }
 
-function guardarSalidas(){
+async function guardarSalidas(){
   const salidas = SALIDAS_FIJAS.map((nombre, i) => ({
     nombre,
     url: document.getElementById('salUrl' + i).value.trim(),
     clave: document.getElementById('salClave' + i).value.trim(),
     activo: document.getElementById('salActiva' + i).checked,
   }));
-  localStorage.setItem('cm_salidas', JSON.stringify(salidas));
+  await guardarUsuario({ salidas });
   els.statusLine.textContent = 'Salidas guardadas ✓';
 }
 
@@ -1175,18 +1224,6 @@ function autoBlackEnabled(){
   return localStorage.getItem('cm_autoblack') !== 'false';
 }
 
-/* ---- cuenta activa/apagada: corta todas las entradas y salidas ---- */
-function cuentaActiva(){
-  return localStorage.getItem('cm_cuenta_activa') !== 'false';
-}
-function actualizarEstadoCuenta(){
-  const activa = els.cuentaActivaSwitch.checked;
-  localStorage.setItem('cm_cuenta_activa', activa ? 'true' : 'false');
-  els.cuentaEstado.textContent = activa ? 'Activa' : 'Apagada';
-  els.cuentaEstado.style.color = activa ? 'var(--accent)' : 'var(--text-dim)';
-}
-els.cuentaActivaSwitch.addEventListener('change', actualizarEstadoCuenta);
-
 let overlayMode = 'idle';
 
 function showOverlay(newMode){
@@ -1302,12 +1339,26 @@ els.fakeOff.addEventListener('mouseup', (e) => {
 /* ============================================================
    INICIALIZACIÓN
    ============================================================ */
-(function init(){
+(async function init(){
+  if(!TOKEN){
+    mostrarBloqueo('Este enlace no tiene tu token personal. Pedile al administrador tu link de acceso.');
+    return;
+  }
+
+  const usuario = await cargarUsuario();
+  if(!usuario){
+    mostrarBloqueo('Este enlace no es válido, o no se pudo conectar con el servidor. Probá de nuevo en un momento.');
+    return;
+  }
+  els.cuentaEstado.textContent = usuario.activo ? 'Activa' : 'Apagada';
+  els.cuentaEstado.style.color = usuario.activo ? 'var(--accent)' : 'var(--text-dim)';
+  if(!usuario.activo){
+    mostrarBloqueo('Tu cuenta está apagada. Contactá al administrador para volver a activarla.');
+    return;
+  }
+
   renderEntradas();
   renderSalidas();
-
-  els.cuentaActivaSwitch.checked = cuentaActiva();
-  actualizarEstadoCuenta();
 
   els.autoBlackToggle.checked = autoBlackEnabled();
   els.autoBlackToggle.addEventListener('change', () => {

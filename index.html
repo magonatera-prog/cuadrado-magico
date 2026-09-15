@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<title>Cuadrado Mágico · Numerología de cumpleaños</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500;1,600&family=Josefin+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1E1E1E;
+    --panel: #221829;
+    --panel-alt: #392A44;
+    --text: #CAC4CF;
+    --text-dim: #8d8496;
+    --accent: #C9A24A;
+    --accent-soft: rgba(201,162,74,0.14);
+    --line: rgba(202,196,207,0.16);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: radial-gradient(120% 140% at 50% -10%, #2b2033 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    padding: 48px 20px 80px;
+  }
+  .page{ width:100%; max-width: 560px; }
+
+  header{ text-align:center; margin-bottom: 40px; }
+  header .eyebrow{
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+  }
+  header h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 42px;
+    margin: 6px 0 4px;
+    color: #EDE7DE;
+  }
+  header p{
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--panel), var(--panel-alt));
+    border: 1px solid var(--line);
+    padding: 28px;
+    margin-bottom: 22px;
+  }
+
+  .field-row{ display:flex; gap:12px; flex-wrap: wrap; }
+  .field{ flex:1; min-width: 140px; display:flex; flex-direction:column; gap:6px; }
+  label{ font-size: 13px; color: var(--text-dim); }
+  input[type="date"], select, input[type="url"]{
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 15px;
+    padding: 10px 12px;
+    outline: none;
+  }
+  input:focus, select:focus{ border-color: var(--accent); }
+
+  #birthdate{
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    color: #EDE7DE;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 40px;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 18px 12px;
+    outline: none;
+    width: 100%;
+  }
+  #birthdate::placeholder{ color: var(--text-dim); opacity: 0.5; }
+  #birthdate:focus{ border-color: var(--accent); }
+
+  button{
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    padding: 12px 20px;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  button:hover{ background: var(--accent-soft); }
+  button.solid{
+    background: var(--accent);
+    color: #1E1E1E;
+  }
+  button.solid:hover{ background: #d9b565; }
+  button.ghost{
+    border-color: var(--line);
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+  button:disabled{ opacity:0.4; cursor:default; }
+
+  .generate-row{ margin-top: 18px; display:flex; justify-content:flex-end; }
+
+  /* ---- resultado ---- */
+  #resultado{ display:none; }
+
+  .square-hero{
+    text-align:center;
+  }
+  .constant-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .square-hero .constant{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-bottom: 0;
+  }
+  .square-hero .constant strong{
+    color: var(--accent);
+    font-size: 22px;
+    font-style: italic;
+  }
+  .grid{
+    display:grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--accent);
+    margin: 0 auto;
+    width: fit-content;
+    transition: opacity 150ms ease;
+  }
+  .cell{
+    background: var(--panel);
+    width: 62px; height: 62px;
+    display:flex; align-items:center; justify-content:center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: #EDE7DE;
+  }
+  .cell.bottom-row{ color: var(--accent); font-weight:600; }
+
+  .diag-note{
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .diag-note.ok{ color: #9fc7a0; }
+  .diag-note.warn{ color: #c99a4a; }
+
+  .toggle-mini{
+    flex-shrink: 0;
+    width: 38px;
+    height: 26px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    padding: 0;
+  }
+  .toggle-mini.on{ border-color: var(--accent); color: var(--accent); }
+  .square-hero.off .grid, .square-hero.off .constant, .square-hero.off .diag-note{ opacity: 0.3; }
+
+  .readings{ margin-top: 8px; }
+  .reading{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .reading:first-child{ border-top: none; }
+  .reading .label{ color: var(--text-dim); font-size: 14px; min-width: 110px; }
+  .reading .value{ flex:1; text-align:right; font-size: 15px; line-height:1.5; }
+  .reading .value .year{ color: var(--accent); }
+  .reading.off .label, .reading.off .value{ opacity: 0.3; }
+
+  .send-row{
+    display:flex; justify-content:center; margin-top: 26px;
+  }
+  .status-line{
+    text-align:center;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  /* ---- conexiones ---- */
+  details.connections{
+    border: 1px solid var(--line);
+    background: transparent;
+  }
+  details.connections summary{
+    cursor: pointer;
+    padding: 16px 28px;
+    font-size: 14px;
+    color: var(--text-dim);
+    list-style: none;
+  }
+  details.connections summary::-webkit-details-marker{ display:none; }
+  details.connections summary::before{
+    content: "＋ ";
+    color: var(--accent);
+  }
+  details.connections[open] summary::before{ content: "－ "; }
+  .connections-body{ padding: 4px 28px 24px; display:flex; flex-direction:column; gap:16px; }
+  .connections-body .field{ min-width: unset; }
+  .connections-body .row-buttons{ display:flex; gap:10px; flex-wrap:wrap; }
+  .hint{ font-size: 12px; color: var(--text-dim); line-height:1.5; margin:0; }
+
+  .conex-group{ margin-bottom: 22px; }
+  .conex-group:last-child{ margin-bottom: 0; }
+  .conex-group h3{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  .conex-fila{ margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .conex-fila:last-child{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .conex-cabecera{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; gap: 10px; }
+  .conex-cabecera strong{ font-size: 14.5px; color: var(--text); }
+  .conex-fila input{ margin-bottom: 6px; }
+  .conex-fila input:last-child{ margin-bottom: 0; }
+  .switch{ position:relative; display:inline-block; width:40px; height:23px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .track{ position:absolute; cursor:pointer; inset:0; background: rgba(255,255,255,0.12); border-radius:999px; transition:0.15s; }
+  .switch .track:before{ content:""; position:absolute; height:17px; width:17px; left:3px; bottom:3px; background: var(--text); border-radius:50%; transition:0.15s; }
+  .switch input:checked + .track{ background: var(--accent); }
+  .switch input:checked + .track:before{ transform: translateX(17px); background:#1E1E1E; }
+  .conex-save-row{ display:flex; justify-content:flex-end; margin-top: 4px; }
+  .poll-status{ font-size: 11.5px; color: var(--text-dim); margin-top: 10px; }
+
+  footer{ text-align:center; margin-top: 32px; color: var(--text-dim); font-size: 12px; }
+
+  #fakeOff{
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 90ms ease;
+    z-index: 9999;
+    touch-action: none;
+  }
+  header h1{ -webkit-user-select:none; user-select:none; }
+</style>
+</head>
+<body>
+<div id="fakeOff"></div>
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Numerología aplicada</div>
+    <h1>Cuadrado Mágico</h1>
+    <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
+  </header>
+
+  <div class="card">
+    <div class="field" style="margin-bottom:16px;">
+      <label for="birthdate">Fecha, de un jalo (ej. 1441988)</label>
+      <input type="text" id="birthdate" inputmode="numeric" autocomplete="off" placeholder="DDMMAAAA">
+    </div>
+    <div class="field-row">
+      <div class="field" style="max-width:140px;">
+        <label for="size">Tamaño</label>
+        <select id="size">
+          <option value="3">3 × 3</option>
+          <option value="4" selected>4 × 4</option>
+          <option value="5">5 × 5</option>
+          <option value="6">6 × 6</option>
+          <option value="7">7 × 7</option>
+          <option value="8">8 × 8</option>
+        </select>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px;">
+      Escribe solo números: día, mes y año seguidos (14, 4 y 1988 →
+      1441988). Con los 8 dígitos completos (DDMMAAAA) se genera y envía
+      sola; con menos dígitos, presiona Enter o "Generar ahora".
+    </p>
+    <div class="generate-row">
+      <button class="solid" id="btnGenerar">Generar ahora</button>
+    </div>
+  </div>
+
+  <div id="resultado" class="card">
+    <div class="square-hero" id="squareHero">
+      <div class="constant-row">
+        <button class="toggle-mini" data-key="square">ON</button>
+        <div class="constant">constante mágica <strong id="magicConstant">—</strong></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="diag-note" id="diagNote"></div>
+    </div>
+
+    <div class="readings">
+      <div class="reading" data-row="zodiac">
+        <button class="toggle-mini" data-key="zodiac">ON</button>
+        <div class="label">Signo</div>
+        <div class="value" id="rZodiac">—</div>
+      </div>
+      <div class="reading" data-row="days">
+        <button class="toggle-mini" data-key="days">ON</button>
+        <div class="label">Días vivido</div>
+        <div class="value" id="rDays">—</div>
+      </div>
+      <div class="reading" data-row="figure">
+        <button class="toggle-mini" data-key="figure">ON</button>
+        <div class="label">Comparte cumpleaños con</div>
+        <div class="value" id="rFigure">buscando…</div>
+      </div>
+      <div class="reading" data-row="event">
+        <button class="toggle-mini" data-key="event">ON</button>
+        <div class="label">Un día como hoy</div>
+        <div class="value" id="rEvent">buscando…</div>
+      </div>
+      <div class="reading" data-row="curiosity">
+        <button class="toggle-mini" data-key="curiosity">ON</button>
+        <div class="label">Curiosidad</div>
+        <div class="value" id="rCuriosity">buscando…</div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:14px;">
+      El botón junto a cada dato decide si se incluye al enviar. "OFF" no
+      lo oculta de tu pantalla, solo lo deja fuera del envío.
+    </p>
+
+    <div class="send-row">
+      <button id="btnEnviar">Enviar resultado</button>
+    </div>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <details class="connections">
+    <summary>Pantalla negra</summary>
+    <div class="connections-body">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px;">
+        <input type="checkbox" id="autoBlackToggle" style="width:17px;height:17px;">
+        Pantalla negra automática al generar
+      </label>
+      <p class="hint">
+        Con esto activado, en cuanto se genera y se envía el cuadrado, la
+        pantalla se pone negra sola (simulando estar apagada). Mantén el
+        dedo presionado para verlo; al soltar se vuelve a cubrir.
+        Desactiva el interruptor si por ahora solo quieres ver el resultado
+        en pantalla, por ejemplo mientras pruebas.
+      </p>
+      <p class="hint">
+        Para salir a la pantalla normal mientras está en negro:
+        <strong style="color:var(--accent);font-weight:500;">desliza con dos dedos hacia arriba</strong>,
+        o mantén presionado casi un segundo sin mover el dedo.
+      </p>
+    </div>
+  </details>
+
+  <details class="connections">
+    <summary>Entrada automática (Goo, Impra, Sekitan)</summary>
+    <div class="connections-body">
+      <p class="hint">
+        Prende la que uses y pega su URL. Esta página la revisa sola cada
+        pocos segundos mientras esté abierta — en cuanto detecta una fecha
+        nueva, genera el cuadrado sin que toques nada.<br>
+        También podés abrirla con la fecha en la URL: <code>...?birthdate=1441988&size=4</code>
+      </p>
+      <div id="entradasCont"></div>
+      <div class="conex-save-row"><button class="ghost" id="btnGuardarEntradas">Guardar entradas</button></div>
+      <p class="poll-status" id="pollStatus"></p>
+    </div>
+  </details>
+
+  <details class="connections">
+    <summary>Salidas (Impra, Goo, Glyphs, Motherboard, Omega Board)</summary>
+    <div class="connections-body">
+      <p class="hint">
+        Prende las que uses y pega su URL (y clave, si la pide). En cuanto
+        se genera un cuadrado, se manda solo a todas las que estén
+        prendidas — sin tocar nada más. "Enviar resultado" queda como
+        respaldo manual.
+      </p>
+      <div id="salidasCont"></div>
+      <div class="conex-save-row"><button class="ghost" id="btnGuardarSalidas">Guardar salidas</button></div>
+    </div>
+  </details>
+
+  <footer>Herramienta personal · Javier Natera</footer>
+</div>
+
+<script>
+/* ============================================================
+   NUMEROLOGÍA Y CUADRADO MÁGICO
+   (mismo método que la versión API: sustitución sobre un
+   cuadrado latino diagonal — ver README de la versión Python
+   para la explicación matemática completa)
+   ============================================================ */
+
+function digitalRoot(n){
+  n = Math.abs(n);
+  if(n <= 0) return 0;
+  while(n > 9){
+    n = String(n).split('').reduce((a,d)=>a+parseInt(d,10),0);
+  }
+  return n;
+}
+
+function computeBirthdateNumbers(date){
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const century = Math.floor(year / 100);
+  const yearInCentury = year % 100;
+  const x = day + month + century + yearInCentury;
+  return {
+    day, month, century, yearInCentury,
+    magicNumberX: x,
+    rootNumber: digitalRoot(x)
+  };
+}
+
+function digitSequence(nums){
+  const pad2 = n => String(n).padStart(2,'0');
+  const str = pad2(nums.day) + pad2(nums.month) + pad2(nums.century) + pad2(nums.yearInCentury);
+  return str.split('').map(d => parseInt(d,10));
+}
+
+function balancedChunks(items, nChunks){
+  const length = items.length;
+  const baseSize = Math.floor(length / nChunks);
+  const remainder = length % nChunks;
+  const chunks = [];
+  let idx = 0;
+  for(let i=0; i<nChunks; i++){
+    const size = baseSize + (i < remainder ? 1 : 0);
+    chunks.push(items.slice(idx, idx+size));
+    idx += size;
+  }
+  return chunks;
+}
+
+function componentsForSize(nums, size){
+  if(size === 4){
+    return { components: [nums.day, nums.month, nums.century, nums.yearInCentury], magicConstant: nums.magicNumberX };
+  }
+  const digits = digitSequence(nums);
+  const chunks = balancedChunks(digits, size);
+  const components = chunks.map(c => c.reduce((a,b)=>a+b,0));
+  const magicConstant = digits.reduce((a,b)=>a+b,0);
+  return { components, magicConstant };
+}
+
+function latinSquare(n){
+  if(n === 4){
+    return {
+      matrix: [[1,0,3,2],[3,2,1,0],[2,3,0,1],[0,1,2,3]],
+      guaranteed: true
+    };
+  }
+  let k, guaranteed;
+  if(n % 2 === 1 && n % 3 !== 0){ k = 2; guaranteed = true; }
+  else { k = 1; guaranteed = false; }
+  const matrix = [];
+  for(let i=0;i<n;i++){
+    const row = [];
+    for(let j=0;j<n;j++) row.push((i + k*j) % n);
+    matrix.push(row);
+  }
+  return { matrix, guaranteed };
+}
+
+function buildMagicSquare(components){
+  const n = components.length;
+  const { matrix, guaranteed } = latinSquare(n);
+  const lastRowSymbols = matrix[n-1];
+  const symbolToCol = new Array(n);
+  lastRowSymbols.forEach((symbol, col) => { symbolToCol[symbol] = col; });
+  const valueForSymbol = [];
+  for(let s=0; s<n; s++) valueForSymbol.push(components[symbolToCol[s]]);
+
+  const grid = matrix.map(row => row.map(symbol => valueForSymbol[symbol]));
+
+  const rowsSum = grid.map(row => row.reduce((a,b)=>a+b,0));
+  const colsSum = [];
+  for(let c=0;c<n;c++) colsSum.push(grid.reduce((acc,row)=>acc+row[c],0));
+  let mainDiag = 0, antiDiag = 0;
+  for(let i=0;i<n;i++){ mainDiag += grid[i][i]; antiDiag += grid[i][n-1-i]; }
+
+  return { grid, rowsSum, colsSum, diagonalsSum: [mainDiag, antiDiag], guaranteed };
+}
+
+/* ============================================================
+   ZODIACO
+   ============================================================ */
+const ZODIAC = [
+  { sign:'Capricornio', from:[12,22], to:[1,19], element:'Tierra', modality:'Cardinal' },
+  { sign:'Acuario', from:[1,20], to:[2,18], element:'Aire', modality:'Fijo' },
+  { sign:'Piscis', from:[2,19], to:[3,20], element:'Agua', modality:'Mutable' },
+  { sign:'Aries', from:[3,21], to:[4,19], element:'Fuego', modality:'Cardinal' },
+  { sign:'Tauro', from:[4,20], to:[5,20], element:'Tierra', modality:'Fijo' },
+  { sign:'Géminis', from:[5,21], to:[6,20], element:'Aire', modality:'Mutable' },
+  { sign:'Cáncer', from:[6,21], to:[7,22], element:'Agua', modality:'Cardinal' },
+  { sign:'Leo', from:[7,23], to:[8,22], element:'Fuego', modality:'Fijo' },
+  { sign:'Virgo', from:[8,23], to:[9,22], element:'Tierra', modality:'Mutable' },
+  { sign:'Libra', from:[9,23], to:[10,22], element:'Aire', modality:'Cardinal' },
+  { sign:'Escorpio', from:[10,23], to:[11,21], element:'Agua', modality:'Fijo' },
+  { sign:'Sagitario', from:[11,22], to:[12,21], element:'Fuego', modality:'Mutable' },
+];
+
+function zodiacFor(date){
+  const m = date.getMonth()+1, d = date.getDate();
+  for(const z of ZODIAC){
+    const [fm,fd] = z.from, [tm,td] = z.to;
+    if(fm === tm){
+      if(m === fm && d >= fd && d <= td) return z;
+    } else {
+      if((m === fm && d >= fd) || (m === tm && d <= td)) return z;
+    }
+  }
+  return ZODIAC[0];
+}
+
+/* ============================================================
+   DÍAS VIVIDO
+   ============================================================ */
+function daysAliveInfo(date){
+  const today = new Date();
+  const msPerDay = 86400000;
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = Math.round((now - start) / msPerDay);
+
+  let next = new Date(now.getFullYear(), date.getMonth(), date.getDate());
+  if(next < now) next = new Date(now.getFullYear()+1, date.getMonth(), date.getDate());
+  const toNext = Math.round((next - now) / msPerDay);
+
+  return { days, toNext };
+}
+
+/* ============================================================
+   WIKIPEDIA "EFEMÉRIDES" (personaje / evento / curiosidad)
+   ============================================================ */
+async function fetchOnThisDay(month, day){
+  const mm = String(month).padStart(2,'0');
+  const dd = String(day).padStart(2,'0');
+  const langs = ['es','en'];
+  for(const lang of langs){
+    try{
+      const url = `https://api.wikimedia.org/feed/v1/wikipedia/${lang}/onthisday/all/${mm}/${dd}`;
+      const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+      if(!res.ok) continue;
+      const data = await res.json();
+      return { data, lang };
+    } catch(e){ /* intenta el siguiente idioma */ }
+  }
+  return null;
+}
+
+function pickRandom(arr){
+  if(!arr || arr.length === 0) return null;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+/* ============================================================
+   PARSEO DE FECHA "DE UN JALO" (sin separadores)
+   Ejemplo: 1441988 -> día 14, mes 4, año 1988
+   ============================================================ */
+function parseCompactDigits(digits){
+  const L = digits.length;
+  if(L < 6 || L > 8) return null;
+  const yearStr = digits.slice(-4);
+  const rest = digits.slice(0, L-4);
+  let candidates = [];
+  if(rest.length === 2) candidates = [[rest.slice(0,1), rest.slice(1)]];
+  else if(rest.length === 3) candidates = [[rest.slice(0,2), rest.slice(2)], [rest.slice(0,1), rest.slice(1)]];
+  else if(rest.length === 4) candidates = [[rest.slice(0,2), rest.slice(2)]];
+  else return null;
+
+  const year = parseInt(yearStr, 10);
+  for(const [dStr, mStr] of candidates){
+    const day = parseInt(dStr, 10), month = parseInt(mStr, 10);
+    if(day >= 1 && day <= 31 && month >= 1 && month <= 12){
+      return { day, month, year };
+    }
+  }
+  return null;
+}
+
+function dateFromCompact(digits){
+  const parsed = parseCompactDigits(digits);
+  if(!parsed) return null;
+  const d = new Date(parsed.year, parsed.month - 1, parsed.day);
+  if(d.getMonth() !== parsed.month - 1) return null; // ej. 31 de febrero
+  return d;
+}
+
+function parseAnyDateString(text){
+  if(!text) return null;
+  const raw = String(text).trim();
+  const digitsOnly = raw.replace(/\D/g, '');
+
+  if(digitsOnly.length >= 6 && digitsOnly.length <= 8){
+    const d = dateFromCompact(digitsOnly);
+    if(d) return d;
+  }
+  const match = raw.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+  if(match){
+    const [, dStr, mStr, yStr] = match;
+    const day = parseInt(dStr,10), month = parseInt(mStr,10), year = parseInt(yStr,10);
+    const d = new Date(year, month-1, day);
+    if(d.getMonth() === month-1) return d;
+  }
+  return null;
+}
+
+/* ============================================================
+   FLUJO PRINCIPAL
+   ============================================================ */
+const els = {
+  birthdate: document.getElementById('birthdate'),
+  size: document.getElementById('size'),
+  btnGenerar: document.getElementById('btnGenerar'),
+  resultado: document.getElementById('resultado'),
+  magicConstant: document.getElementById('magicConstant'),
+  grid: document.getElementById('grid'),
+  diagNote: document.getElementById('diagNote'),
+  rZodiac: document.getElementById('rZodiac'),
+  rDays: document.getElementById('rDays'),
+  rFigure: document.getElementById('rFigure'),
+  rEvent: document.getElementById('rEvent'),
+  rCuriosity: document.getElementById('rCuriosity'),
+  btnEnviar: document.getElementById('btnEnviar'),
+  statusLine: document.getElementById('statusLine'),
+  entradasCont: document.getElementById('entradasCont'),
+  salidasCont: document.getElementById('salidasCont'),
+  btnGuardarEntradas: document.getElementById('btnGuardarEntradas'),
+  btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
+  pollStatus: document.getElementById('pollStatus'),
+  fakeOff: document.getElementById('fakeOff'),
+  autoBlackToggle: document.getElementById('autoBlackToggle'),
+  squareHero: document.getElementById('squareHero'),
+};
+
+let lastPayload = null;
+let isGenerating = false;
+let generationCounter = 0;
+let debounceTimer = null;
+
+function renderGrid(grid){
+  const n = grid.length;
+  els.grid.style.gridTemplateColumns = `repeat(${n}, 62px)`;
+  els.grid.innerHTML = '';
+  grid.forEach((row, i) => {
+    row.forEach((val) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (i === n-1 ? ' bottom-row' : '');
+      cell.textContent = val;
+      els.grid.appendChild(cell);
+    });
+  });
+}
+
+async function generar(opts){
+  opts = opts || {};
+  if(isGenerating) return;
+
+  const digits = els.birthdate.value.replace(/\D/g, '');
+  const date = dateFromCompact(digits);
+
+  if(!date){
+    if(opts.manual){
+      els.statusLine.textContent = 'Escribe una fecha válida, ej. 1441988 (día, mes, año seguidos).';
+    }
+    return;
+  }
+  if(date > new Date()){
+    els.statusLine.textContent = 'Esa fecha está en el futuro.';
+    return;
+  }
+
+  await generarFromDate(date, parseInt(els.size.value, 10));
+  if(autoBlackEnabled()) showOverlay('peek');
+}
+
+async function generarFromDate(date, size){
+  if(isGenerating) return;
+  isGenerating = true;
+  const myGenId = ++generationCounter;
+
+  const nums = computeBirthdateNumbers(date);
+  const { components, magicConstant } = componentsForSize(nums, size);
+  const square = buildMagicSquare(components);
+
+  els.resultado.style.display = 'block';
+  els.magicConstant.textContent = magicConstant;
+  renderGrid(square.grid);
+
+  if(square.guaranteed){
+    els.diagNote.className = 'diag-note ok';
+    els.diagNote.textContent = 'Filas, columnas y ambas diagonales suman ' + magicConstant + '.';
+  } else {
+    els.diagNote.className = 'diag-note warn';
+    els.diagNote.textContent =
+      'Filas y columnas suman ' + magicConstant + '. Las diagonales, para este tamaño, no quedan garantizadas matemáticamente (suman ' +
+      square.diagonalsSum[0] + ' y ' + square.diagonalsSum[1] + ').';
+  }
+
+  const z = zodiacFor(date);
+  els.rZodiac.textContent = `${z.sign} · ${z.element} · ${z.modality}`;
+
+  const { days, toNext } = daysAliveInfo(date);
+  els.rDays.textContent = `${days.toLocaleString('es-MX')} días (próximo cumpleaños en ${toNext})`;
+
+  els.rFigure.textContent = 'buscando…';
+  els.rEvent.textContent = 'buscando…';
+  els.rCuriosity.textContent = 'buscando…';
+
+  lastPayload = {
+    birthdate: `${String(date.getDate()).padStart(2,'0')}-${String(date.getMonth()+1).padStart(2,'0')}-${date.getFullYear()}`,
+    size,
+    magicNumberX: nums.magicNumberX,
+    rootNumber: nums.rootNumber,
+    magicConstant,
+    grid: square.grid,
+    diagonalMagicGuaranteed: square.guaranteed,
+    zodiac: { sign: z.sign, element: z.element, modality: z.modality },
+    daysAlive: days,
+    daysToNextBirthday: toNext,
+  };
+
+  const onThisDay = await fetchOnThisDay(nums.month, nums.day);
+  if(myGenId !== generationCounter) return; // llegó una generación más nueva mientras esperábamos
+
+  if(!onThisDay){
+    els.rFigure.textContent = 'sin conexión a internet ahora mismo';
+    els.rEvent.textContent = 'sin conexión a internet ahora mismo';
+    els.rCuriosity.textContent = 'sin conexión a internet ahora mismo';
+    isGenerating = false;
+    await sendResult({ auto: true });
+    return;
+  }
+
+  const { data } = onThisDay;
+  const births = (data.births || []).filter(b => b.year < date.getFullYear());
+  const events = data.events || [];
+  const holidays = data.holidays || [];
+
+  const figure = pickRandom(births);
+  const event = pickRandom(events);
+  const curiosity = pickRandom(holidays) || pickRandom(events.filter(e => e !== event));
+
+  els.rFigure.innerHTML = figure
+    ? `${figure.text} <span class="year">(${figure.year})</span>`
+    : 'no se encontró un personaje para esta fecha';
+  els.rEvent.innerHTML = event
+    ? `${event.text} <span class="year">(${event.year})</span>`
+    : 'no se encontró un evento para esta fecha';
+  els.rCuriosity.textContent = curiosity ? (curiosity.text || curiosity.name || '—') : 'sin dato adicional';
+
+  lastPayload.historicalFigure = figure ? { text: figure.text, year: figure.year } : null;
+  lastPayload.historicalEvent = event ? { text: event.text, year: event.year } : null;
+  lastPayload.curiosity = curiosity ? (curiosity.text || curiosity.name || null) : null;
+
+  isGenerating = false;
+  await sendResult({ auto: true });
+}
+
+/* ============================================================
+   QUÉ SE ENVÍA: interruptor ON/OFF por cada dato
+   ============================================================ */
+const SEND_TOGGLE_KEYS = ['square', 'zodiac', 'days', 'figure', 'event', 'curiosity'];
+let sendToggles = { square: true, zodiac: true, days: true, figure: true, event: true, curiosity: true };
+
+function loadSendToggles(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('cm_send_toggles') || '{}');
+    SEND_TOGGLE_KEYS.forEach(k => { if(typeof saved[k] === 'boolean') sendToggles[k] = saved[k]; });
+  } catch(e){ /* usa los valores por defecto */ }
+}
+
+function saveSendToggles(){
+  localStorage.setItem('cm_send_toggles', JSON.stringify(sendToggles));
+}
+
+function applyToggleVisuals(){
+  document.querySelectorAll('.toggle-mini').forEach(btn => {
+    const key = btn.dataset.key;
+    const on = sendToggles[key];
+    btn.textContent = on ? 'ON' : 'OFF';
+    btn.classList.toggle('on', on);
+  });
+  document.querySelectorAll('.reading').forEach(row => {
+    row.classList.toggle('off', !sendToggles[row.dataset.row]);
+  });
+  els.squareHero.classList.toggle('off', !sendToggles.square);
+}
+
+document.querySelectorAll('.toggle-mini').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.key;
+    sendToggles[key] = !sendToggles[key];
+    saveSendToggles();
+    applyToggleVisuals();
+  });
+});
+
+function buildOutgoingPayload(){
+  if(!lastPayload) return null;
+  const p = { birthdate: lastPayload.birthdate, size: lastPayload.size };
+  if(sendToggles.square){
+    p.magicNumberX = lastPayload.magicNumberX;
+    p.rootNumber = lastPayload.rootNumber;
+    p.magicConstant = lastPayload.magicConstant;
+    p.grid = lastPayload.grid;
+    p.diagonalMagicGuaranteed = lastPayload.diagonalMagicGuaranteed;
+  }
+  if(sendToggles.zodiac) p.zodiac = lastPayload.zodiac;
+  if(sendToggles.days){
+    p.daysAlive = lastPayload.daysAlive;
+    p.daysToNextBirthday = lastPayload.daysToNextBirthday;
+  }
+  if(sendToggles.figure) p.historicalFigure = lastPayload.historicalFigure;
+  if(sendToggles.event) p.historicalEvent = lastPayload.historicalEvent;
+  if(sendToggles.curiosity) p.curiosity = lastPayload.curiosity;
+  return p;
+}
+
+/* ============================================================
+   CONEXIONES: entrada automática (Goo, Impra, Sekitan) y
+   salidas (Impra, Goo, Glyphs, Motherboard, Omega Board).
+   Mismo esquema que usa el backend del Diccionario · Código.
+   ============================================================ */
+const ENTRADAS_FIJAS = ['Goo', 'Impra', 'Sekitan'];
+const SALIDAS_FIJAS = ['Impra', 'Goo', 'Glyphs', 'Motherboard', 'Omega Board'];
+
+function loadEntradas(){
+  let saved = [];
+  try{ saved = JSON.parse(localStorage.getItem('cm_entradas') || '[]'); } catch(e){}
+  return ENTRADAS_FIJAS.map(nombre => saved.find(e => e.nombre === nombre) || { nombre, url: '', activo: false });
+}
+function loadSalidas(){
+  let saved = [];
+  try{ saved = JSON.parse(localStorage.getItem('cm_salidas') || '[]'); } catch(e){}
+  return SALIDAS_FIJAS.map(nombre => saved.find(s => s.nombre === nombre) || { nombre, url: '', clave: '', activo: false });
+}
+
+function renderEntradas(){
+  const entradas = loadEntradas();
+  els.entradasCont.innerHTML = entradas.map((e, i) => `
+    <div class="conex-fila">
+      <div class="conex-cabecera">
+        <strong>${e.nombre}</strong>
+        <label class="switch">
+          <input type="checkbox" id="entActiva${i}" ${e.activo ? 'checked' : ''}>
+          <span class="track"></span>
+        </label>
+      </div>
+      <input type="url" id="entUrl${i}" placeholder="URL de tu ${e.nombre}..." value="${e.url || ''}">
+    </div>`).join('');
+}
+
+function renderSalidas(){
+  const salidas = loadSalidas();
+  els.salidasCont.innerHTML = salidas.map((s, i) => `
+    <div class="conex-fila">
+      <div class="conex-cabecera">
+        <strong>${s.nombre}</strong>
+        <label class="switch">
+          <input type="checkbox" id="salActiva${i}" ${s.activo ? 'checked' : ''}>
+          <span class="track"></span>
+        </label>
+      </div>
+      <input type="url" id="salUrl${i}" placeholder="URL de ${s.nombre}..." value="${s.url || ''}">
+      <input type="text" id="salClave${i}" placeholder="Clave / API Key (opcional)" value="${s.clave || ''}">
+    </div>`).join('');
+}
+
+function guardarEntradas(){
+  const entradas = ENTRADAS_FIJAS.map((nombre, i) => ({
+    nombre,
+    url: document.getElementById('entUrl' + i).value.trim(),
+    activo: document.getElementById('entActiva' + i).checked,
+  }));
+  localStorage.setItem('cm_entradas', JSON.stringify(entradas));
+  els.statusLine.textContent = 'Entradas guardadas ✓';
+}
+
+function guardarSalidas(){
+  const salidas = SALIDAS_FIJAS.map((nombre, i) => ({
+    nombre,
+    url: document.getElementById('salUrl' + i).value.trim(),
+    clave: document.getElementById('salClave' + i).value.trim(),
+    activo: document.getElementById('salActiva' + i).checked,
+  }));
+  localStorage.setItem('cm_salidas', JSON.stringify(salidas));
+  els.statusLine.textContent = 'Salidas guardadas ✓';
+}
+
+/* ---- envío a cada salida, con el formato que espera cada app ----
+   Texto corto (Goo/Motherboard/Omega Board): el cuadrado completo,
+   fila por fila, para que el mentalista lo lea y lo revele.
+   JSON completo (Impra/Glyphs): el payload estructurado de siempre. */
+function gridATexto(grid){
+  return grid.map(row => row.join(' ')).join(' / ');
+}
+
+async function enviarAUnaSalida(salida){
+  const destino = salida.url;
+  const textoCorto = lastPayload ? gridATexto(lastPayload.grid) : '';
+  const headersConClave = salida.clave ? { Authorization: `Bearer ${salida.clave}` } : {};
+  try{
+    let res;
+    if(destino.includes('api.motherboard.conjuringlab.com')){
+      res = await fetch(destino, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Motherboard-Api-Id': salida.clave || '', 'Idempotency-Key': crypto.randomUUID() },
+        body: JSON.stringify({ kind: 'text', text: textoCorto }),
+      });
+    } else if(destino.includes('themotherboard.fr')){
+      res = await fetch(destino, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain', ...headersConClave },
+        body: textoCorto,
+      });
+    } else if(destino.includes('11q.co/api/thump')){
+      res = await fetch(destino, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headersConClave },
+        body: JSON.stringify({ query: textoCorto }),
+      });
+    } else if(destino.includes('dvxms.de/api/omega')){
+      const urlOmega = new URL(destino);
+      const userIdOmega = urlOmega.searchParams.get('user_id') || '';
+      const baseUrlOmega = `${urlOmega.origin}${urlOmega.pathname}`;
+      res = await fetch(baseUrlOmega, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userIdOmega, value: textoCorto, key: salida.clave || '' }),
+      });
+    } else {
+      // Impra, Glyphs, o cualquier otra: JSON completo del cuadrado.
+      res = await fetch(destino, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headersConClave },
+        body: JSON.stringify(buildOutgoingPayload()),
+      });
+    }
+    return { nombre: salida.nombre, ok: res.ok, status: res.status };
+  } catch(e){
+    return { nombre: salida.nombre, ok: false, error: String(e) };
+  }
+}
+
+async function sendResult(opts){
+  opts = opts || {};
+  if(!lastPayload){
+    if(!opts.auto) els.statusLine.textContent = 'Genera un cuadrado primero.';
+    return;
+  }
+  const salidas = loadSalidas().filter(s => s.activo && s.url);
+  if(!salidas.length){
+    if(!opts.auto) els.statusLine.textContent = 'Prendé al menos una salida en "Conexiones" para poder enviar.';
+    return;
+  }
+  if(!opts.auto) els.statusLine.textContent = 'Enviando…';
+  const resultados = await Promise.all(salidas.map(enviarAUnaSalida));
+  const fallidas = resultados.filter(r => !r.ok);
+  els.statusLine.textContent = fallidas.length
+    ? `Generado. Enviado a ${resultados.length - fallidas.length}/${resultados.length} (falló: ${fallidas.map(f => f.nombre).join(', ')}).`
+    : `Generado y enviado a ${resultados.map(r => r.nombre).join(', ')}.`;
+}
+
+/* ---- entrada automática: revisa cada pocos segundos, sin botón ---- */
+function extraerTexto(fuenteData){
+  return (fuenteData.query ?? fuenteData.value ?? fuenteData.rawValue ??
+    fuenteData.raw ?? fuenteData.peek ?? fuenteData.text ?? '').toString().trim();
+}
+
+let pollBusy = false;
+async function pollEntradas(){
+  if(pollBusy || isGenerating) return;
+  pollBusy = true;
+  const entradas = loadEntradas().filter(e => e.activo && e.url);
+  for(const entrada of entradas){
+    try{
+      const res = await fetch(entrada.url);
+      if(!res.ok) continue;
+      const raw = await res.text();
+      let texto = raw.trim();
+      try{ texto = extraerTexto(JSON.parse(raw)) || texto; } catch(e){ /* no era JSON, se usa tal cual */ }
+      if(!texto) continue;
+
+      const claveUltimo = 'cm_last_' + entrada.nombre;
+      if(localStorage.getItem(claveUltimo) === texto) continue;
+      localStorage.setItem(claveUltimo, texto);
+
+      const date = parseAnyDateString(texto);
+      if(date){
+        els.birthdate.value = `${String(date.getDate()).padStart(2,'0')}${String(date.getMonth()+1).padStart(2,'0')}${date.getFullYear()}`;
+        els.pollStatus.textContent = `Recibido de ${entrada.nombre}: ${texto}`;
+        await generarFromDate(date, parseInt(els.size.value, 10));
+        if(autoBlackEnabled()) showOverlay('peek');
+      }
+    } catch(e){ /* sigue con la siguiente entrada */ }
+  }
+  pollBusy = false;
+}
+setInterval(pollEntradas, 5000);
+
+els.btnGenerar.addEventListener('click', () => { clearTimeout(debounceTimer); generar({ manual: true }); });
+
+/* ---- fecha "de un jalo": solo dígitos, auto-genera y auto-envía ---- */
+els.birthdate.addEventListener('input', () => {
+  const digits = els.birthdate.value.replace(/\D/g, '').slice(0, 8);
+  if(els.birthdate.value !== digits) els.birthdate.value = digits;
+
+  clearTimeout(debounceTimer);
+  if(digits.length === 8){
+    // 8 dígitos (DDMMAAAA) no son ambiguos: se genera de inmediato.
+    generar();
+  }
+  // Con 6 o 7 dígitos NO se genera solo (podría ser una fecha a medio
+  // escribir todavía). Hay que presionar Enter o "Generar ahora".
+});
+els.birthdate.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    clearTimeout(debounceTimer);
+    generar({ manual: true });
+  }
+});
+
+/* ---- enviar resultado a las salidas prendidas (botón manual, de respaldo) ---- */
+els.btnEnviar.addEventListener('click', () => sendResult({ auto: false }));
+
+els.btnGuardarEntradas.addEventListener('click', guardarEntradas);
+els.btnGuardarSalidas.addEventListener('click', guardarSalidas);
+
+/* ============================================================
+   PANTALLA "APAGADA" (peek)
+   ============================================================
+   Al terminar de generar (si el interruptor "pantalla negra
+   automática" está activado), la pantalla se pone negra sola.
+   Mantener el dedo presionado revela el resultado; al soltar se
+   vuelve a cubrir. Presión larga (≥900ms) casi sin mover el dedo,
+   o un swipe con DOS DEDOS hacia arriba, regresan a la pantalla
+   en blanco (lista para la siguiente persona).
+   Nota: la vibración (navigator.vibrate) solo funciona en Android;
+   en iPhone no hay retroalimentación táctil disponible.
+*/
+function vibrate(pattern){
+  if(navigator.vibrate){ navigator.vibrate(pattern); }
+}
+
+function autoBlackEnabled(){
+  return localStorage.getItem('cm_autoblack') !== 'false';
+}
+
+let overlayMode = 'idle';
+
+function showOverlay(newMode){
+  overlayMode = newMode;
+  els.fakeOff.style.pointerEvents = 'auto';
+  els.fakeOff.style.opacity = '1';
+}
+
+function hideOverlayCompletely(){
+  overlayMode = 'idle';
+  els.fakeOff.style.opacity = '0';
+  els.fakeOff.style.pointerEvents = 'none';
+}
+
+function resetToBlankInput(){
+  hideOverlayCompletely();
+  els.birthdate.value = '';
+  els.resultado.style.display = 'none';
+  els.statusLine.textContent = '';
+  vibrate(50);
+}
+
+function exitBlackScreen(){
+  hideOverlayCompletely();
+  vibrate(45);
+}
+
+function handleSingleFingerGesture(dx, dy, dist, duration){
+  if(overlayMode !== 'peek') return;
+  if(dist < 15 && duration >= 900) resetToBlankInput();
+}
+
+/* ---- gestos táctiles: 1 dedo = peek, 2 dedos arriba = salir ---- */
+function avgTouchPos(touchList){
+  let x = 0, y = 0;
+  for(let i = 0; i < touchList.length; i++){ x += touchList[i].clientX; y += touchList[i].clientY; }
+  return { x: x / touchList.length, y: y / touchList.length };
+}
+
+let touchState = { active: false, fingers: 0, startX: 0, startY: 0, startTime: 0 };
+
+els.fakeOff.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if(overlayMode === 'peek') els.fakeOff.style.opacity = '0';
+
+  if(!touchState.active){
+    touchState.active = true;
+    touchState.fingers = e.touches.length;
+    touchState.startTime = Date.now();
+    const p = avgTouchPos(e.touches);
+    touchState.startX = p.x; touchState.startY = p.y;
+  } else if(e.touches.length === 2){
+    touchState.fingers = 2;
+    const p = avgTouchPos(e.touches);
+    touchState.startX = p.x; touchState.startY = p.y;
+    touchState.startTime = Date.now();
+  }
+}, { passive: false });
+
+els.fakeOff.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  if(!touchState.active) return;
+  if(e.touches.length > 0) return; // aún quedan dedos, espera a que se levanten todos
+
+  const p = avgTouchPos(e.changedTouches);
+  const dx = p.x - touchState.startX;
+  const dy = p.y - touchState.startY;
+  const dist = Math.hypot(dx, dy);
+  const duration = Date.now() - touchState.startTime;
+  const fingers = touchState.fingers;
+  touchState.active = false;
+  touchState.fingers = 0;
+
+  if(fingers >= 2){
+    if(dy < -60 && Math.abs(dy) > Math.abs(dx)){
+      exitBlackScreen();
+    } else if(overlayMode === 'peek'){
+      els.fakeOff.style.opacity = '1';
+    }
+    return;
+  }
+
+  if(overlayMode === 'peek') els.fakeOff.style.opacity = '1';
+  handleSingleFingerGesture(dx, dy, dist, duration);
+}, { passive: false });
+
+els.fakeOff.addEventListener('touchcancel', () => {
+  touchState.active = false;
+  touchState.fingers = 0;
+  if(overlayMode === 'peek') els.fakeOff.style.opacity = '1';
+});
+
+/* ---- respaldo con mouse, para probar en computadora ---- */
+let mouseState = null;
+els.fakeOff.addEventListener('mousedown', (e) => {
+  mouseState = { x: e.clientX, y: e.clientY, time: Date.now() };
+  if(overlayMode === 'peek') els.fakeOff.style.opacity = '0';
+});
+els.fakeOff.addEventListener('mouseup', (e) => {
+  if(!mouseState) return;
+  const dx = e.clientX - mouseState.x;
+  const dy = e.clientY - mouseState.y;
+  const dist = Math.hypot(dx, dy);
+  const duration = Date.now() - mouseState.time;
+  mouseState = null;
+  if(overlayMode === 'peek') els.fakeOff.style.opacity = '1';
+  handleSingleFingerGesture(dx, dy, dist, duration);
+});
+
+
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
+(function init(){
+  renderEntradas();
+  renderSalidas();
+
+  els.autoBlackToggle.checked = autoBlackEnabled();
+  els.autoBlackToggle.addEventListener('change', () => {
+    localStorage.setItem('cm_autoblack', els.autoBlackToggle.checked ? 'true' : 'false');
+  });
+
+  loadSendToggles();
+  applyToggleVisuals();
+
+  const params = new URLSearchParams(window.location.search);
+  const bParam = params.get('birthdate');
+  const sParam = params.get('size');
+  let parsedFromUrl = false;
+  if(bParam){
+    const date = parseAnyDateString(bParam);
+    if(date){
+      els.birthdate.value = `${String(date.getDate()).padStart(2,'0')}${String(date.getMonth()+1).padStart(2,'0')}${date.getFullYear()}`;
+      parsedFromUrl = true;
+    }
+  }
+  if(sParam && ['3','4','5','6','7','8'].includes(sParam)){
+    els.size.value = sParam;
+  }
+  if(parsedFromUrl){
+    generar();
+  }
+})();
+</script>
+</body>
+</html>

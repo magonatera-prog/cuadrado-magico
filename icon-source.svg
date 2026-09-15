@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#392A44"/>
+      <stop offset="100%" stop-color="#1E1E1E"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+
+  <g transform="translate(0,76)">
+    <!-- símbolo de raíz cuadrada -->
+    <path d="M 90 300 L 140 360 L 230 150 L 430 150"
+          fill="none" stroke="#EDE7DE" stroke-width="26"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- sombrero de mago, apoyado sobre la barra de la raíz -->
+    <g>
+      <!-- ala -->
+      <ellipse cx="325" cy="152" rx="88" ry="19" fill="#C9A24A"/>
+      <!-- cono, triángulo curvo inclinado hacia la derecha -->
+      <path d="M 250 150 Q 268 75 338 22 Q 328 90 308 150 Z"
+            fill="#392A44" stroke="#C9A24A" stroke-width="7" stroke-linejoin="round"/>
+      <!-- banda dorada -->
+      <line x1="258" y1="126" x2="300" y2="104"
+            stroke="#C9A24A" stroke-width="11" stroke-linecap="round"/>
+      <!-- estrella en la punta -->
+      <path d="M 338 4 l 5 13 l 14 2 l -10 9 l 3 14 l -12 -7 l -12 7 l 3 -14 l -10 -9 l 14 -2 Z"
+            fill="#E8CF9A"/>
+    </g>
+  </g>
+</svg>

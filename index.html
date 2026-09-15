@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#000000">
 <title>Cuadrado Mágico · Numerología de cumpleaños</title>
+<link rel="icon" href="icon-180.png">
+<link rel="icon" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500;1,600&family=Josefin+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -36,6 +39,13 @@
   .page{ width:100%; max-width: 560px; }
 
   header{ text-align:center; margin-bottom: 40px; }
+  header .isotipo{
+    display:inline-block;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 2px 6px rgba(201,162,74,0.25));
+  }
   header .eyebrow{
     font-size: 13px;
     letter-spacing: 0.04em;
@@ -259,7 +269,7 @@
   .switch .track:before{ content:""; position:absolute; height:17px; width:17px; left:3px; bottom:3px; background: var(--text); border-radius:50%; transition:0.15s; }
   .switch input:checked + .track{ background: var(--accent); }
   .switch input:checked + .track:before{ transform: translateX(17px); background:#1E1E1E; }
-  .conex-save-row{ display:flex; justify-content:flex-end; margin-top: 4px; }
+  .conex-save-row{ display:flex; justify-content:flex-end; gap:10px; margin-top: 4px; }
   .poll-status{ font-size: 11.5px; color: var(--text-dim); margin-top: 10px; }
 
   footer{ text-align:center; margin-top: 32px; color: var(--text-dim); font-size: 12px; }
@@ -275,13 +285,44 @@
     touch-action: none;
   }
   header h1{ -webkit-user-select:none; user-select:none; }
+
+  .power-btn{
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.28);
+    color: var(--text-dim);
+    font-size: 17px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 500;
+    padding: 0;
+  }
+  .power-btn:hover{ border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
 <div id="fakeOff"></div>
+<button class="power-btn" id="btnApagar" title="Apagar (pantalla negra)">⏻</button>
 <div class="page">
 
   <header>
+    <svg class="isotipo" viewBox="70 60 380 380" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 90 300 L 140 360 L 230 150 L 430 150" fill="none" stroke="#EDE7DE" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,76)"/>
+      <g transform="translate(0,76)">
+        <ellipse cx="325" cy="152" rx="88" ry="19" fill="#C9A24A"/>
+        <path d="M 250 150 Q 268 75 338 22 Q 328 90 308 150 Z" fill="#392A44" stroke="#C9A24A" stroke-width="7" stroke-linejoin="round"/>
+        <line x1="258" y1="126" x2="300" y2="104" stroke="#C9A24A" stroke-width="11" stroke-linecap="round"/>
+        <path d="M 338 4 l 5 13 l 14 2 l -10 9 l 3 14 l -12 -7 l -12 7 l 3 -14 l -10 -9 l 14 -2 Z" fill="#E8CF9A"/>
+      </g>
+    </svg>
     <div class="eyebrow">Numerología aplicada</div>
     <h1>Cuadrado Mágico</h1>
     <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
@@ -395,7 +436,10 @@
         También podés abrirla con la fecha en la URL: <code>...?birthdate=1441988&size=4</code>
       </p>
       <div id="entradasCont"></div>
-      <div class="conex-save-row"><button class="ghost" id="btnGuardarEntradas">Guardar entradas</button></div>
+      <div class="conex-save-row">
+        <button class="ghost" id="btnRevisarAhora">↻ Revisar ahora</button>
+        <button class="ghost" id="btnGuardarEntradas">Guardar entradas</button>
+      </div>
       <p class="poll-status" id="pollStatus"></p>
     </div>
   </details>
@@ -664,6 +708,8 @@ const els = {
   salidasCont: document.getElementById('salidasCont'),
   btnGuardarEntradas: document.getElementById('btnGuardarEntradas'),
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
+  btnRevisarAhora: document.getElementById('btnRevisarAhora'),
+  btnApagar: document.getElementById('btnApagar'),
   pollStatus: document.getElementById('pollStatus'),
   fakeOff: document.getElementById('fakeOff'),
   autoBlackToggle: document.getElementById('autoBlackToggle'),
@@ -1007,8 +1053,9 @@ function extraerTexto(fuenteData){
 
 let pollBusy = false;
 async function pollEntradas(){
-  if(pollBusy || isGenerating) return;
+  if(pollBusy || isGenerating) return false;
   pollBusy = true;
+  let recibido = false;
   const entradas = loadEntradas().filter(e => e.activo && e.url);
   for(const entrada of entradas){
     try{
@@ -1029,12 +1076,24 @@ async function pollEntradas(){
         els.pollStatus.textContent = `Recibido de ${entrada.nombre}: ${texto}`;
         await generarFromDate(date, parseInt(els.size.value, 10));
         if(autoBlackEnabled()) showOverlay('peek');
+        recibido = true;
       }
     } catch(e){ /* sigue con la siguiente entrada */ }
   }
   pollBusy = false;
+  return recibido;
 }
 setInterval(pollEntradas, 5000);
+
+/* ---- botón "Revisar ahora": fuerza una revisión inmediata, sin esperar el intervalo ---- */
+els.btnRevisarAhora.addEventListener('click', async () => {
+  els.pollStatus.textContent = 'Revisando…';
+  const recibido = await pollEntradas();
+  if(!recibido) els.pollStatus.textContent = 'Sin novedades.';
+});
+
+/* ---- botón de apagado: pone la pantalla negra al instante, como si estuviera apagado ---- */
+els.btnApagar.addEventListener('click', () => showOverlay('peek'));
 
 els.btnGenerar.addEventListener('click', () => { clearTimeout(debounceTimer); generar({ manual: true }); });
 
@@ -1047,9 +1106,11 @@ els.birthdate.addEventListener('input', () => {
   if(digits.length === 8){
     // 8 dígitos (DDMMAAAA) no son ambiguos: se genera de inmediato.
     generar();
+  } else if(digits.length >= 6){
+    // 6 o 7 dígitos ya alcanzan para una fecha válida, pero podría seguir
+    // escribiéndose: esperamos una pausa breve antes de generar sola.
+    debounceTimer = setTimeout(() => generar(), 500);
   }
-  // Con 6 o 7 dígitos NO se genera solo (podría ser una fecha a medio
-  // escribir todavía). Hay que presionar Enter o "Generar ahora".
 });
 els.birthdate.addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){

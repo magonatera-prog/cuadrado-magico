@@ -64,6 +64,14 @@
     color: var(--text-dim);
     font-size: 15px;
   }
+  #nombreUsuario{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--accent);
+    text-align: center;
+    margin: 2px 0 10px;
+  }
 
   .card{
     background: linear-gradient(180deg, var(--panel), var(--panel-alt));
@@ -338,6 +346,7 @@
     </svg>
     <div class="eyebrow">Numerología aplicada</div>
     <h1>Cuadrado Mágico</h1>
+    <p id="nombreUsuario"></p>
     <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
   </header>
 
@@ -723,6 +732,7 @@ const els = {
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
   btnRefrescarInline: document.getElementById('btnRefrescarInline'),
   powerSwitch: document.getElementById('powerSwitch'),
+  nombreUsuario: document.getElementById('nombreUsuario'),
   cuentaEstado: document.getElementById('cuentaEstado'),
   bloqueoCuenta: document.getElementById('bloqueoCuenta'),
   bloqueoMensaje: document.getElementById('bloqueoMensaje'),
@@ -1350,6 +1360,7 @@ els.fakeOff.addEventListener('mouseup', (e) => {
     mostrarBloqueo('Este enlace no es válido, o no se pudo conectar con el servidor. Probá de nuevo en un momento.');
     return;
   }
+  els.nombreUsuario.textContent = usuario.nombre || '';
   els.cuentaEstado.textContent = usuario.activo ? 'Activa' : 'Apagada';
   els.cuentaEstado.style.color = usuario.activo ? 'var(--accent)' : 'var(--text-dim)';
   if(!usuario.activo){

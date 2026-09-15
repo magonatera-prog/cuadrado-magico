@@ -286,31 +286,45 @@
   }
   header h1{ -webkit-user-select:none; user-select:none; }
 
-  .power-btn{
+  .floating-controls{
     position: fixed;
     top: 16px;
     right: 16px;
-    width: 40px;
-    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 500;
+  }
+  .icon-btn{
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: 1px solid var(--line);
     background: rgba(0,0,0,0.28);
     color: var(--text-dim);
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 500;
     padding: 0;
   }
-  .power-btn:hover{ border-color: var(--accent); color: var(--accent); }
+  .icon-btn:hover{ border-color: var(--accent); color: var(--accent); }
+  .icon-btn.spinning{ animation: spin 0.6s linear; }
+  @keyframes spin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+  .floating-controls .switch .track{ background: rgba(0,0,0,0.28); border: 1px solid var(--line); }
 </style>
 </head>
 <body>
 <div id="fakeOff"></div>
-<button class="power-btn" id="btnApagar" title="Apagar (pantalla negra)">⏻</button>
+<div class="floating-controls">
+  <button class="icon-btn" id="btnRefrescarFlotante" title="Revisar entradas ahora">⟳</button>
+  <label class="switch" title="Pantalla encendida / apagada">
+    <input type="checkbox" id="powerSwitch" checked>
+    <span class="track"></span>
+  </label>
+</div>
 <div class="page">
 
   <header>
@@ -437,7 +451,6 @@
       </p>
       <div id="entradasCont"></div>
       <div class="conex-save-row">
-        <button class="ghost" id="btnRevisarAhora">↻ Revisar ahora</button>
         <button class="ghost" id="btnGuardarEntradas">Guardar entradas</button>
       </div>
       <p class="poll-status" id="pollStatus"></p>
@@ -708,8 +721,8 @@ const els = {
   salidasCont: document.getElementById('salidasCont'),
   btnGuardarEntradas: document.getElementById('btnGuardarEntradas'),
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
-  btnRevisarAhora: document.getElementById('btnRevisarAhora'),
-  btnApagar: document.getElementById('btnApagar'),
+  btnRefrescarFlotante: document.getElementById('btnRefrescarFlotante'),
+  powerSwitch: document.getElementById('powerSwitch'),
   pollStatus: document.getElementById('pollStatus'),
   fakeOff: document.getElementById('fakeOff'),
   autoBlackToggle: document.getElementById('autoBlackToggle'),
@@ -1085,15 +1098,23 @@ async function pollEntradas(){
 }
 setInterval(pollEntradas, 5000);
 
-/* ---- botón "Revisar ahora": fuerza una revisión inmediata, sin esperar el intervalo ---- */
-els.btnRevisarAhora.addEventListener('click', async () => {
+/* ---- botón flotante ⟳: fuerza una revisión inmediata, sin esperar el intervalo ---- */
+els.btnRefrescarFlotante.addEventListener('click', async () => {
+  els.btnRefrescarFlotante.classList.add('spinning');
   els.pollStatus.textContent = 'Revisando…';
   const recibido = await pollEntradas();
   if(!recibido) els.pollStatus.textContent = 'Sin novedades.';
+  els.btnRefrescarFlotante.classList.remove('spinning');
 });
 
-/* ---- botón de apagado: pone la pantalla negra al instante, como si estuviera apagado ---- */
-els.btnApagar.addEventListener('click', () => showOverlay('peek'));
+/* ---- switch de encendido: refleja y controla si la pantalla está negra ---- */
+els.powerSwitch.addEventListener('change', () => {
+  if(els.powerSwitch.checked){
+    hideOverlayCompletely();
+  } else {
+    showOverlay('peek');
+  }
+});
 
 els.btnGenerar.addEventListener('click', () => { clearTimeout(debounceTimer); generar({ manual: true }); });
 
@@ -1151,12 +1172,14 @@ function showOverlay(newMode){
   overlayMode = newMode;
   els.fakeOff.style.pointerEvents = 'auto';
   els.fakeOff.style.opacity = '1';
+  els.powerSwitch.checked = false;
 }
 
 function hideOverlayCompletely(){
   overlayMode = 'idle';
   els.fakeOff.style.opacity = '0';
   els.fakeOff.style.pointerEvents = 'none';
+  els.powerSwitch.checked = true;
 }
 
 function resetToBlankInput(){

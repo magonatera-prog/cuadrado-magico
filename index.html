@@ -350,10 +350,16 @@
     <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
   </header>
 
-  <div class="card" id="cuentaCard">
-    <strong>Cuenta:</strong>
-    <span id="cuentaEstado" style="color:var(--accent);">Activa</span>
-    <p class="hint" style="margin-top:4px;">La activa o desactiva el administrador.</p>
+  <div class="card" id="cuentaCard" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+    <div>
+      <strong>Cuenta:</strong>
+      <span id="cuentaEstado" style="color:var(--accent);">Activa</span>
+      <p class="hint" style="margin-top:4px;">Apagala para pausar entradas y salidas. El administrador también puede apagarla del todo desde su panel.</p>
+    </div>
+    <label class="switch" title="Pausar/reanudar entradas y salidas">
+      <input type="checkbox" id="cuentaActivaSwitch" checked>
+      <span class="track"></span>
+    </label>
   </div>
 
   <div id="bloqueoCuenta" class="card" style="display:none; text-align:center;">
@@ -733,6 +739,7 @@ const els = {
   btnRefrescarInline: document.getElementById('btnRefrescarInline'),
   powerSwitch: document.getElementById('powerSwitch'),
   nombreUsuario: document.getElementById('nombreUsuario'),
+  cuentaActivaSwitch: document.getElementById('cuentaActivaSwitch'),
   cuentaEstado: document.getElementById('cuentaEstado'),
   bloqueoCuenta: document.getElementById('bloqueoCuenta'),
   bloqueoMensaje: document.getElementById('bloqueoMensaje'),
@@ -781,8 +788,17 @@ async function guardarUsuario(cambios){
 }
 
 function cuentaActiva(){
-  return !!(USUARIO_CACHE && USUARIO_CACHE.activo);
+  return !!(USUARIO_CACHE && USUARIO_CACHE.activo && !USUARIO_CACHE.pausado);
 }
+
+async function actualizarPausado(){
+  const pausado = !els.cuentaActivaSwitch.checked;
+  if(USUARIO_CACHE) USUARIO_CACHE.pausado = pausado;
+  els.cuentaEstado.textContent = pausado ? 'Apagada' : 'Activa';
+  els.cuentaEstado.style.color = pausado ? 'var(--text-dim)' : 'var(--accent)';
+  await guardarUsuario({ pausado });
+}
+els.cuentaActivaSwitch.addEventListener('change', actualizarPausado);
 
 function mostrarBloqueo(mensaje){
   els.appPrincipal.style.display = 'none';
@@ -1360,13 +1376,14 @@ els.fakeOff.addEventListener('mouseup', (e) => {
     mostrarBloqueo('Este enlace no es válido, o no se pudo conectar con el servidor. Probá de nuevo en un momento.');
     return;
   }
-  els.nombreUsuario.textContent = usuario.nombre || '';
-  els.cuentaEstado.textContent = usuario.activo ? 'Activa' : 'Apagada';
-  els.cuentaEstado.style.color = usuario.activo ? 'var(--accent)' : 'var(--text-dim)';
   if(!usuario.activo){
     mostrarBloqueo('Tu cuenta está apagada. Contactá al administrador para volver a activarla.');
     return;
   }
+  els.nombreUsuario.textContent = usuario.nombre || '';
+  els.cuentaActivaSwitch.checked = !usuario.pausado;
+  els.cuentaEstado.textContent = usuario.pausado ? 'Apagada' : 'Activa';
+  els.cuentaEstado.style.color = usuario.pausado ? 'var(--text-dim)' : 'var(--accent)';
 
   renderEntradas();
   renderSalidas();

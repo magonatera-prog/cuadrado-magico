@@ -341,6 +341,18 @@
     <p>Introduce una fecha de nacimiento y recibe el cuadrado, más lo que esconde ese día.</p>
   </header>
 
+  <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+    <div>
+      <strong>Cuenta:</strong>
+      <span id="cuentaEstado" style="color:var(--accent);">Activa</span>
+      <p class="hint" style="margin-top:4px;">Apagada = no revisa entradas ni manda a ninguna salida.</p>
+    </div>
+    <label class="switch" title="Activar/desactivar entradas y salidas">
+      <input type="checkbox" id="cuentaActivaSwitch" checked>
+      <span class="track"></span>
+    </label>
+  </div>
+
   <div class="card">
     <div class="field" style="margin-bottom:16px;">
       <label for="birthdate">Fecha, de un jalo (ej. 1441988)</label>
@@ -709,6 +721,8 @@ const els = {
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
   btnRefrescarInline: document.getElementById('btnRefrescarInline'),
   powerSwitch: document.getElementById('powerSwitch'),
+  cuentaActivaSwitch: document.getElementById('cuentaActivaSwitch'),
+  cuentaEstado: document.getElementById('cuentaEstado'),
   pollStatus: document.getElementById('pollStatus'),
   fakeOff: document.getElementById('fakeOff'),
   autoBlackToggle: document.getElementById('autoBlackToggle'),
@@ -1028,6 +1042,10 @@ async function enviarAUnaSalida(salida){
 
 async function sendResult(opts){
   opts = opts || {};
+  if(!cuentaActiva()){
+    if(!opts.auto) els.statusLine.textContent = 'Cuenta apagada — no se envía nada.';
+    return;
+  }
   if(!lastPayload){
     if(!opts.auto) els.statusLine.textContent = 'Genera un cuadrado primero.';
     return;
@@ -1053,7 +1071,7 @@ function extraerTexto(fuenteData){
 
 let pollBusy = false;
 async function pollEntradas(){
-  if(pollBusy || isGenerating) return false;
+  if(!cuentaActiva() || pollBusy || isGenerating) return false;
   pollBusy = true;
   let recibido = false;
   const entradas = loadEntradas().filter(e => e.activo && e.url);
@@ -1087,6 +1105,10 @@ setInterval(pollEntradas, 5000);
 
 /* ---- botón ⟳: fuerza una revisión inmediata, sin esperar el intervalo ---- */
 els.btnRefrescarInline.addEventListener('click', async () => {
+  if(!cuentaActiva()){
+    els.pollStatus.textContent = 'Cuenta apagada — no se revisa nada.';
+    return;
+  }
   els.btnRefrescarInline.classList.add('spinning');
   els.pollStatus.textContent = 'Revisando…';
   const recibido = await pollEntradas();
@@ -1152,6 +1174,18 @@ function vibrate(pattern){
 function autoBlackEnabled(){
   return localStorage.getItem('cm_autoblack') !== 'false';
 }
+
+/* ---- cuenta activa/apagada: corta todas las entradas y salidas ---- */
+function cuentaActiva(){
+  return localStorage.getItem('cm_cuenta_activa') !== 'false';
+}
+function actualizarEstadoCuenta(){
+  const activa = els.cuentaActivaSwitch.checked;
+  localStorage.setItem('cm_cuenta_activa', activa ? 'true' : 'false');
+  els.cuentaEstado.textContent = activa ? 'Activa' : 'Apagada';
+  els.cuentaEstado.style.color = activa ? 'var(--accent)' : 'var(--text-dim)';
+}
+els.cuentaActivaSwitch.addEventListener('change', actualizarEstadoCuenta);
 
 let overlayMode = 'idle';
 
@@ -1271,6 +1305,9 @@ els.fakeOff.addEventListener('mouseup', (e) => {
 (function init(){
   renderEntradas();
   renderSalidas();
+
+  els.cuentaActivaSwitch.checked = cuentaActiva();
+  actualizarEstadoCuenta();
 
   els.autoBlackToggle.checked = autoBlackEnabled();
   els.autoBlackToggle.addEventListener('change', () => {

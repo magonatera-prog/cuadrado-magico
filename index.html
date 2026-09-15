@@ -128,7 +128,7 @@
   }
   button:disabled{ opacity:0.4; cursor:default; }
 
-  .generate-row{ margin-top: 18px; display:flex; justify-content:flex-end; }
+  .generate-row{ margin-top: 18px; display:flex; justify-content:flex-end; align-items:center; gap:10px; }
 
   /* ---- resultado ---- */
   #resultado{ display:none; }
@@ -319,7 +319,6 @@
 <body>
 <div id="fakeOff"></div>
 <div class="floating-controls">
-  <button class="icon-btn" id="btnRefrescarFlotante" title="Revisar entradas ahora">⟳</button>
   <label class="switch" title="Pantalla encendida / apagada">
     <input type="checkbox" id="powerSwitch" checked>
     <span class="track"></span>
@@ -347,25 +346,13 @@
       <label for="birthdate">Fecha, de un jalo (ej. 1441988)</label>
       <input type="text" id="birthdate" inputmode="numeric" autocomplete="off" placeholder="DDMMAAAA">
     </div>
-    <div class="field-row">
-      <div class="field" style="max-width:140px;">
-        <label for="size">Tamaño</label>
-        <select id="size">
-          <option value="3">3 × 3</option>
-          <option value="4" selected>4 × 4</option>
-          <option value="5">5 × 5</option>
-          <option value="6">6 × 6</option>
-          <option value="7">7 × 7</option>
-          <option value="8">8 × 8</option>
-        </select>
-      </div>
-    </div>
     <p class="hint" style="margin-top:10px;">
       Escribe solo números: día, mes y año seguidos (14, 4 y 1988 →
       1441988). Con los 8 dígitos completos (DDMMAAAA) se genera y envía
       sola; con menos dígitos, presiona Enter o "Generar ahora".
     </p>
     <div class="generate-row">
+      <button class="icon-btn" id="btnRefrescarInline" title="Revisar entradas ahora">⟳</button>
       <button class="solid" id="btnGenerar">Generar ahora</button>
     </div>
   </div>
@@ -447,7 +434,7 @@
         Prende la que uses y pega su URL. Esta página la revisa sola cada
         pocos segundos mientras esté abierta — en cuanto detecta una fecha
         nueva, genera el cuadrado sin que toques nada.<br>
-        También podés abrirla con la fecha en la URL: <code>...?birthdate=1441988&size=4</code>
+        También podés abrirla con la fecha en la URL: <code>...?birthdate=1441988</code>
       </p>
       <div id="entradasCont"></div>
       <div class="conex-save-row">
@@ -704,7 +691,6 @@ function parseAnyDateString(text){
    ============================================================ */
 const els = {
   birthdate: document.getElementById('birthdate'),
-  size: document.getElementById('size'),
   btnGenerar: document.getElementById('btnGenerar'),
   resultado: document.getElementById('resultado'),
   magicConstant: document.getElementById('magicConstant'),
@@ -721,7 +707,7 @@ const els = {
   salidasCont: document.getElementById('salidasCont'),
   btnGuardarEntradas: document.getElementById('btnGuardarEntradas'),
   btnGuardarSalidas: document.getElementById('btnGuardarSalidas'),
-  btnRefrescarFlotante: document.getElementById('btnRefrescarFlotante'),
+  btnRefrescarInline: document.getElementById('btnRefrescarInline'),
   powerSwitch: document.getElementById('powerSwitch'),
   pollStatus: document.getElementById('pollStatus'),
   fakeOff: document.getElementById('fakeOff'),
@@ -729,6 +715,7 @@ const els = {
   squareHero: document.getElementById('squareHero'),
 };
 
+const SQUARE_SIZE = 4;
 let lastPayload = null;
 let isGenerating = false;
 let generationCounter = 0;
@@ -766,7 +753,7 @@ async function generar(opts){
     return;
   }
 
-  await generarFromDate(date, parseInt(els.size.value, 10));
+  await generarFromDate(date, SQUARE_SIZE);
   if(autoBlackEnabled()) showOverlay('peek');
 }
 
@@ -1087,7 +1074,7 @@ async function pollEntradas(){
       if(date){
         els.birthdate.value = `${String(date.getDate()).padStart(2,'0')}${String(date.getMonth()+1).padStart(2,'0')}${date.getFullYear()}`;
         els.pollStatus.textContent = `Recibido de ${entrada.nombre}: ${texto}`;
-        await generarFromDate(date, parseInt(els.size.value, 10));
+        await generarFromDate(date, SQUARE_SIZE);
         if(autoBlackEnabled()) showOverlay('peek');
         recibido = true;
       }
@@ -1098,13 +1085,13 @@ async function pollEntradas(){
 }
 setInterval(pollEntradas, 5000);
 
-/* ---- botón flotante ⟳: fuerza una revisión inmediata, sin esperar el intervalo ---- */
-els.btnRefrescarFlotante.addEventListener('click', async () => {
-  els.btnRefrescarFlotante.classList.add('spinning');
+/* ---- botón ⟳: fuerza una revisión inmediata, sin esperar el intervalo ---- */
+els.btnRefrescarInline.addEventListener('click', async () => {
+  els.btnRefrescarInline.classList.add('spinning');
   els.pollStatus.textContent = 'Revisando…';
   const recibido = await pollEntradas();
   if(!recibido) els.pollStatus.textContent = 'Sin novedades.';
-  els.btnRefrescarFlotante.classList.remove('spinning');
+  els.btnRefrescarInline.classList.remove('spinning');
 });
 
 /* ---- switch de encendido: refleja y controla si la pantalla está negra ---- */
@@ -1295,20 +1282,12 @@ els.fakeOff.addEventListener('mouseup', (e) => {
 
   const params = new URLSearchParams(window.location.search);
   const bParam = params.get('birthdate');
-  const sParam = params.get('size');
-  let parsedFromUrl = false;
   if(bParam){
     const date = parseAnyDateString(bParam);
     if(date){
       els.birthdate.value = `${String(date.getDate()).padStart(2,'0')}${String(date.getMonth()+1).padStart(2,'0')}${date.getFullYear()}`;
-      parsedFromUrl = true;
+      generar();
     }
-  }
-  if(sParam && ['3','4','5','6','7','8'].includes(sParam)){
-    els.size.value = sParam;
-  }
-  if(parsedFromUrl){
-    generar();
   }
 })();
 </script>
